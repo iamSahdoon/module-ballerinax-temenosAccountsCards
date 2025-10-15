@@ -1,0 +1,15 @@
+[package]
+distribution = "2201.12.0"
+org = "ballerinax"
+name = "temenosAccountsCards"
+version = "0.1.0"
+license = ["Apache-2.0"]
+authors = ["iamSahdoon"]
+keywords = ["banking", "temenos", "api" , "accounts", "cards"]
+repository = "https://github.com/iamSahdoon/module-ballerinax-temenosAccountsCards"
+
+[build-options]
+observabilityIncluded = true
+
+[platform.java21]
+graalvmCompatible = true
