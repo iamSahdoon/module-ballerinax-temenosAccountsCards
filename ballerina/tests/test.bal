@@ -19,7 +19,8 @@ import ballerina/http;
 
 configurable ApiKeysConfig apiKeyConfig = ?;
 configurable string serviceUrl = "https://api.temenos.com/api/v2.0.0//holdings/cards";
-// configurable string customerId = "66052";
+configurable string cardIssueId = "VISA.234789412589633";
+
 
 ConnectionConfig config = {
     auth: apiKeyConfig
@@ -41,34 +42,33 @@ isolated function testGetHoldings() returns error? {
 
 
 @test:Config {
-    groups: ["post_test"]
+    groups: ["post_test, create_delete_issue"]
 }
 isolated function testPostCardIssue() returns error? {
-    string cardIssueId = "VISA.2347123812345679";
     
     // Create the card issue request body
     CardIssueResponseBody payload = {
         accountIds: [
             {
-                accountId: "138387"
+                accountId: "140333"
             }
         ],
         cardNames: [
             {
-                cardName: "Mr & Mrs David Miller"
+                cardName: "ROLF GERLING"
             }
         ],
-        cardStatus: "90",
+        cardStatus: "90", //problem
         currencyId: "USD",
         issueDate: "2019-08-24",
         expiryDate: "2019-10-24",
         pinIssueDate: "2019-08-24",
         cancellationDate: "2019-08-24",
-        customerId: "100210",
-        cardDisplayNumber: "2347XXXXXXXX5679",
+        cancellationReason: "1",
+        customerId: "100336",
+        cardDisplayNumber: "2347XXXXXXXX6346",
         charge: "100"
     };
-
     // Convert payload to JSON and create request
     json jsonPayload = payload.toJson();
     http:Request request = new;
@@ -77,9 +77,11 @@ isolated function testPostCardIssue() returns error? {
     CardIssueResponse|error response = temenos->/[cardIssueId].post(request);
     
     if response is CardIssueResponse {
-        io:println("Success Response: ", response);
+        io:println("Success Post Response: ", response);
+        test:assertTrue(response.header?.status == "success", "Card issue request failed");
     } else {
-        io:println("Error Response: ", response.message());
+        io:println("Error Post Response: ", response.message());
+        test:assertFail("Failed to create card issue: " + response.message());
     }
 }
 
@@ -88,7 +90,6 @@ isolated function testPostCardIssue() returns error? {
     groups: ["put_test"]
 }
 isolated function testPutCardIssue() returns error? {
-    string cardIssueId = "VISA.2347123812345679";
     
     // Update the card issue request body
     CardIssueResponseBody payload = {
@@ -106,7 +107,7 @@ isolated function testPutCardIssue() returns error? {
         issueDate: "2019-08-24",
         pinIssueDate: "2019-08-24",
         cancellationDate: "2019-08-24",
-        cancellationReason: "test"
+        cancellationReason: "test" //problem
     };
 
     // Convert payload to JSON and update request
@@ -124,3 +125,21 @@ isolated function testPutCardIssue() returns error? {
 }
 
 
+@test:Config {
+    dependsOn: [testPostCardIssue],
+    groups: ["delete_test", "create_delete_issue"]
+}
+isolated function testDeleteCardIssue() returns error? {
+    
+    // Create an empty request since no payload is needed
+    http:Request request = new;
+
+    CardIssueResponse|error response = temenos->/[cardIssueId].delete(request);
+    if response is CardIssueResponse {
+        io:println("Success Delete Response: ", response);
+        test:assertTrue(true, "Successfully deleted card issue");
+    } else {
+        io:println("Error Delete Response: ", response.message());
+        test:assertFail("Failed to delete card issue: " + response.message());
+    }
+}
