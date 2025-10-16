@@ -15,6 +15,7 @@
 
 import ballerina/test;
 import ballerina/io;
+import ballerina/http;
 
 configurable ApiKeysConfig apiKeyConfig = ?;
 configurable string serviceUrl = "https://api.temenos.com/api/v2.0.0//holdings/cards";
@@ -39,5 +40,40 @@ isolated function testGetHoldings() returns error? {
 }
 
 
+@test:Config {
+    groups: ["post_test"]
+}
+isolated function testPostCardIssue() returns error? {
+    string cardIssueId = "VISA.2347123812345679";
+    
+    // Create the card issue request body
+    CardIssueResponseBody payload = {
+        accountIds: [
+            {
+                accountId: "138387"
+            }
+        ],
+        cardNames: [
+            {
+                cardName: "Mr & Mrs David Miller"
+            }
+        ],
+        cardStatus: "90",
+        currencyId: "USD",
+        customerId: "100210"
+    };
 
+    // Convert payload to JSON and create request
+    json jsonPayload = payload.toJson();
+    http:Request request = new;
+    request.setJsonPayload(jsonPayload);
+
+    CardIssueResponse|error response = temenos->/[cardIssueId].post(request);
+    
+    if response is CardIssueResponse {
+        io:println("Success Response: ", response);
+    } else {
+        io:println("Error Response: ", response.message());
+    }
+}
 
