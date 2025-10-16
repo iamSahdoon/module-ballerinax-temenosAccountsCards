@@ -60,7 +60,13 @@ isolated function testPostCardIssue() returns error? {
         ],
         cardStatus: "90",
         currencyId: "USD",
-        customerId: "100210"
+        issueDate: "2019-08-24",
+        expiryDate: "2019-10-24",
+        pinIssueDate: "2019-08-24",
+        cancellationDate: "2019-08-24",
+        customerId: "100210",
+        cardDisplayNumber: "2347XXXXXXXX5679",
+        charge: "100"
     };
 
     // Convert payload to JSON and create request
