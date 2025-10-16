@@ -83,3 +83,44 @@ isolated function testPostCardIssue() returns error? {
     }
 }
 
+
+@test:Config {
+    groups: ["put_test"]
+}
+isolated function testPutCardIssue() returns error? {
+    string cardIssueId = "VISA.2347123812345679";
+    
+    // Update the card issue request body
+    CardIssueResponseBody payload = {
+        accountIds: [
+            {
+                accountId: "138387"
+            }
+        ],
+        cardNames: [
+            {
+                cardName: "Mr & Mrs David Miller"
+            }
+        ],
+        cardStatus: "90",
+        issueDate: "2019-08-24",
+        pinIssueDate: "2019-08-24",
+        cancellationDate: "2019-08-24",
+        cancellationReason: "test"
+    };
+
+    // Convert payload to JSON and update request
+    json jsonPayload = payload.toJson();
+    http:Request request = new;
+    request.setJsonPayload(jsonPayload);
+
+    CardIssueResponse|error response = temenos->/[cardIssueId].put(request);
+    
+    if response is CardIssueResponse {
+        io:println("Success Response: ", response);
+    } else {
+        io:println("Error Response: ", response.message());
+    }
+}
+
+
