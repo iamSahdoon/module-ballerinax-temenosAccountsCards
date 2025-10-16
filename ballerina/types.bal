@@ -5,45 +5,26 @@ import ballerina/constraint;
 import ballerina/data.jsondata;
 import ballerina/http;
 
-# Represents the Queries record for the operation: getCustomerHoldings
-public type GetCustomerHoldingsQueries record {
-    # Contains the identifier specific to the holding details of the customer
-    string holdingsId?;
-    # Flag to fetch the preferred holding details (JWT required)
-    string getPreferredHoldings?;
-    # The record from which the response should be displayed
-    @http:Query {name: "page_start"}
-    int:Signed32 pageStart?;
-    # Unique id expected to get as part of response from Transact on every enquiry request
-    @http:Query {name: "page_token"}
-    string pageToken?;
-    # Contains the types of customer holdings
-    string holdingsType?;
-    # The total number of records per page
-    @http:Query {name: "page_size"}
-    int:Signed32 pageSize?;
-};
-
-public type CustomerHoldingsResponseBodyInner_customerIds record {
-    # Identifier of the customer
-    @constraint:String {maxLength: 100}
-    string customerId?;
-    # Indicates role of a customer for an arrangement.
-    string customerRole?;
-    # Indicates the type of role of a customer
-    string roleDisplayName?;
-    # Indicates the customer who is the legal owner of the arrangement and is the responsible customer of the contract with bank.
-    string beneficialOwner?;
-};
-
-# CustomerHoldingsResponse
-public type CustomerHoldingsResponse record {
+# CardIssuesResponse
+public type CardIssuesResponse record {
     QueryHeader header?;
-    CustomerHoldingsResponseBody body?;
+    CardIssuesResponseBody body?;
 };
 
-# Represents the Headers record for the operation: getHoldings
-public type GetHoldingsHeaders record {
+public type ScreenHeader record {
+    # The status of the transaction
+    string transactionStatus?;
+    ScreenHeaderAudit audit?;
+    # The Identifier of the record created
+    string id?;
+    # Status of the API(success/failed)
+    string status?;
+    # The unique identifier/Message Reference of the record created
+    string uniqueIdentifier?;
+};
+
+# Represents the Headers record for the operation: getCardIssues
+public type GetCardIssuesHeaders record {
     # Identifier of the lead company of the underlying Entity/Company/Branch for the respective contract for customer data protection purposes. Example US0010001
     string companyId?;
     # Username and password to authenticate the API against core-banking
@@ -56,8 +37,33 @@ public type GetHoldingsHeaders record {
     string deviceId?;
 };
 
+public type CardIssuesResponseBodyInner_cardNames record {
+    # Name of the Cardholder/Customer
+    @constraint:String {maxLength: 35}
+    string cardName?;
+};
+
+public type CardIssuesResponseBodyInner_accountIds record {
+    # Identifier of the account. Often referred to as the account number, yet for consistency this is always referred to as accountId. Accepts both IBAN & BBAN
+    @constraint:String {maxLength: 16}
+    string accountId?;
+};
+
+public type CardIssueBodyCardNames record {
+    # Name of the Cardholder/Customer
+    @constraint:String {maxLength: 35}
+    string cardName?;
+};
+
+# Represents the Queries record for the operation: deleteCardIssue
+public type DeleteCardIssueQueries record {
+    # The identifier to indicate if it is set to only validate or not
+    @http:Query {name: "validate_only"}
+    boolean validateOnly?;
+};
+
 public type QueryHeader record {
-    QueryHeaderAudit audit?;
+    ScreenHeaderAudit audit?;
     # The record from which the response should be displayed
     @jsondata:Name {value: "page_start"}
     int:Signed32 pageStart?;
@@ -74,52 +80,74 @@ public type QueryHeader record {
     int:Signed32 pageSize?;
 };
 
-public type CustomerHoldingsResponseBody CustomerHoldingsResponseBodyInner[];
-
-public type CustomerHoldingsResponseBodyInner_paymentTemplates record {
-    # Contains the template used for payment transactions
-    string paymentTemplate?;
-};
-
-# Represents the Queries record for the operation: getHoldings
-public type GetHoldingsQueries record {
-    # Contains the identifier specific to the holding details of the customer
-    string holdingsId?;
-    # Flag to fetch the preferred holding details (JWT required)
-    string getPreferredHoldings?;
+# Represents the Queries record for the operation: getCardIssues
+public type GetCardIssuesQueries record {
+    # The date an agreement such as an arrangement, product, credit facility or limit is due to expire
+    string expiryDate?;
+    # Identifier of the account. Often referred to as the account number, yet for consistency this is always referred to as accountId. Accepts both IBAN & BBAN
+    string accountId?;
+    # The identifier of the issued card formatted as cardType '.' cardNumber. E.g. VISA.1234567887654321 GC.1111222233334444 AB21.1111111122222222
+    string cardIssueId?;
     # The record from which the response should be displayed
     @http:Query {name: "page_start"}
     int:Signed32 pageStart?;
-    # Identifier of the customer
-    string customerId?;
     # Unique id expected to get as part of response from Transact on every enquiry request
     @http:Query {name: "page_token"}
     string pageToken?;
-    # Contains the types of customer holdings
-    string holdingsType?;
+    # The date the item was issued
+    string issueDate?;
+    # Current status of the Card and following are the possible statuses are  - CARD.ISSUED - CARD.RETURNED - CARD.SCRAP - CARD.CANCEL - NOT.ACTIVATED - NOT.RECEIVED - ACTIVE - BLOCKED - EXPIRED
+    string cardStatus?;
     # The total number of records per page
     @http:Query {name: "page_size"}
     int:Signed32 pageSize?;
 };
 
-public type CustomerHoldingsResponseBodyInner record {
-    # Contains the final balances of all the external accounts
-    string totalExtAccountBalances?;
-    # Indicates the extension data
-    record {} extensions?;
-    # Contains the final balances of all deposit accounts after all transactions have taken place
-    decimal totalDepositBalances?;
-    # Contains the final balances of all accounts after all transactions have taken place
-    decimal totalAccountBalances?;
-    # Contains the final balances of all loans after all payments have taken place
-    decimal totalLoanBalances?;
-    # Contains the unique identifier of the product, e.g. the product id of the arrangement account
-    CustomerHoldingsResponseBodyInner_products[] products?;
-    # The top level product line, which the product is ultimately attached to. May be a Temenos-defined product line such as ACCOUNTS, AGENT, BUNDLE, CONSENT, DEPOSITS, LENDING, REWARDS, etc. or one defined by the institution to manage external products
-    string productLineId?;
+public type CardIssuesResponseBodyInner record {
+    # The reason for the cancellation
+    @constraint:String {maxLength: 35}
+    string cancellationReason?;
+    # The identifier of the issued card formatted as cardType '.' cardNumber. E.g. VISA.1234567887654321 GC.1111222233334444 AB21.1111111122222222
+    @constraint:String {maxLength: 24}
+    string cardIssueId?;
+    # Contains the name of the card type such as EURO GOLD, MASTER CARD PLATINUM, VISA TITANIUM
+    @constraint:String {maxLength: 35}
+    string cardTypeName?;
+    # The type of the card, e.g. Visa, Mastercard, etc
+    @constraint:String {maxLength: 4}
+    string cardType?;
+    # The number which is up for display on the credit or debit card
+    string cardDisplayNumber?;
+    # The date an agreement such as an arrangement, product, credit facility or limit is due to expire
+    string expiryDate?;
+    # Name of the Cardholder/Customer
+    CardIssuesResponseBodyInner_cardNames[] cardNames?;
+    # Identifier of the account. Often referred to as the account number, yet for consistency this is always referred to as accountId. Accepts both IBAN & BBAN
+    CardIssuesResponseBodyInner_accountIds[] accountIds?;
+    # Identifier of the customer
+    @constraint:String {maxLength: 10}
+    string customerId?;
+    # Identifier of the currency. This is the 3-letter ISO 4217 code of the currency
+    @constraint:String {maxLength: 3}
+    string currencyId?;
+    # The date the item was issued
+    string issueDate?;
+    # Cards issued are defined with an identifier consisting of three elements. The card type, a full stop and the card number. The card number may be any alphanumeric construction, commonly a 16 numeric number is used. VISA.5332870296579001. The id must be in the form of:  CCCC.AAAAAAAAAAAAAAAA  Where CCCC is the card type and AAAAAAAAAAAAAAAA is a unique identifier.  Examples:   VISA.1234567887654321   GC.1111222233334444   AB21.1111111122222222
+    string cardNumber?;
+    # Current status of the Card and following are the possible statuses are  - CARD.ISSUED - CARD.RETURNED - CARD.SCRAP - CARD.CANCEL - NOT.ACTIVATED - NOT.RECEIVED - ACTIVE - BLOCKED - EXPIRED
+    @constraint:String {maxLength: 35}
+    string cardStatus?;
+    # The date of cancellation
+    string cancellationDate?;
 };
 
-public type QueryHeaderAudit record {
+# CardIssueResponse
+public type CardIssueResponse record {
+    ScreenHeader header?;
+    CardIssueResponseBody body?;
+};
+
+public type ScreenHeaderAudit record {
     # Time taken to response by Transact
     @jsondata:Name {value: "T24_time"}
     int:Signed32 t24Time?;
@@ -133,105 +161,92 @@ public type QueryHeaderAudit record {
     decimal requestParseTime?;
 };
 
-public type CustomerHoldingsResponseBodyInner_products record {
-    # Description of the product line, e.g. Client Consent for product line CONSENT.
-    string productLineName?;
-    # Indicates an unique identifier of an account
-    string arrangementId?;
-    # The group, as defined by the institution, that the product belongs to.
-    string productGroupId?;
-    # Description of the product group
-    string productGroupName?;
-    # Contains the unique identifier of the product, e.g. the product id of the arrangement account.
-    string productId?;
-    # Indicates the description of the Product
-    string productDescription?;
+# Represents the Queries record for the operation: createCardIssue
+public type CreateCardIssueQueries record {
+    # The identifier to indicate if it is set to only validate or not
+    @http:Query {name: "validate_only"}
+    boolean validateOnly?;
+};
+
+public type CardIssueResponseBody record {
+    # Notes to facilitate the use of the Function
+    CardIssueBodyNotes[] notes?;
+    # The charges or fees for this transaction
+    @constraint:String {maxLength: 19}
+    string charge?;
+    # The reason for the cancellation
+    @constraint:String {maxLength: 18}
+    string cancellationReason?;
+    # The number which is up for display on the credit or debit card
+    @constraint:String {maxLength: 35}
+    string cardDisplayNumber?;
+    # The date an agreement such as an arrangement, product, credit facility or limit is due to expire
+    string expiryDate?;
+    # Contains the date of issue of the pin
+    string pinIssueDate?;
+    # Name of the Cardholder/Customer
+    CardIssueBodyCardNames[] cardNames?;
     # Identifier of the account. Often referred to as the account number, yet for consistency this is always referred to as accountId. Accepts both IBAN & BBAN
-    string accountId?;
-    # Contains the short title given to the name of an account or an arrangement
-    string shortTitle?;
-    # Unique identifier associated with the product name of the account or contract. For example: For customer/counterparty accounts, the identifier would be in the range 1000 to 9999. For ledger accounts, in the range 10000 to 19999.
-    string categoryId?;
-    # The identifier of the underlying Entity/Company/Branch.
-    string companyCode?;
-    # Identifier of the currency. This is the 3-letter ISO 4217 code of the currency.
-    string currencyId?;
-    # Contains bank sort code or iban branch identifier for the account
-    string sortCode?;
-    # Represents the International Bank Account Number (IBAN) of the account.  E.g. GB29 NWBK 6016 1331 9268 19
-    string accountIBAN?;
-    # Real-time balance including all authorised transactions posted against the account and, unless it is a nostro or internal account, unauthorised debit entries.
-    decimal workingBalance?;
-    # Date on which the credit facility application is opened
-    string openingDate?;
-    # The company in which payment is processed
-    string companyName?;
-    # Indicates the preferred product of the arrangement contract. This is required for only new arrangements and product change is not permitted
-    string preferredProduct?;
-    # Indicates to position of the preferred product of the arrangement contract. This is required for only new arrangements and product change is not permitted
-    string preferredProductPosition?;
-    # Indicates the label of the Preferred Product of the Arrangement contract. This is required for only new arrangements and product change is not permitted
-    string preferredProductLabel?;
-    # The act of permitting, especially in giving formal consent to access a particular file or repository.
-    string permission?;
-    # Real-time balance including all authorised transactions posted against the account, excluding any entries with a future processing date.
-    decimal onlineActualBalance?;
-    # Available balance of the account which is the projected balance which includes the net movements of both debits and credits against the account.
-    decimal availableBalance?;
-    # Contains the maximum amount available to be drawn
-    decimal|string availableBalanceWithLimit?;
-    # Contains the aggregate outstanding principal amount thereof after giving effect to any borrowings and prepayments or repayments of Committed Loans
-    decimal outstandingAmount?;
-    # The amount paid out.
-    decimal paidOutAmount?;
-    # Status of the arrangement. E.g. AUTH, CLOSE, UNAUTH etc.
-    string arrangementStatus?;
-    # Contains the amount borrowed or the part of the amount borrowed which remains unpaid
-    decimal totalPrincipal?;
-    # The reference which is provided to the beneficiary/ creditor by the originator of payment
-    string customerReference?;
-    # Contains the details of account statement first cycle. It includes addon, participant account, lead account, print type, print attribute name, print attribute value, etc.
-    string statement?;
-    # Id of the portfolio or security account
-    string portfolioId?;
-    # The unique identifier to specify an arrangement reference which is act as a Master for the arrangement being created.
-    string masterArrangementId?;
-    # The sub-account that the security position is held in.
-    string subAccount?;
-    # Identifies the credit limit reference for the underlying account.
-    string limitReference?;
-    # Specifies the operative status of the acount like inactive, dormant,unclaimed etc.,
-    string dormancyStatus?;
-    # Used to define the attributes needed for product creation. For example, line Of business, organisation and branch, etc
-    string productAttribute?;
-    # Contains the id associated to the connect reference respective to a transaction of the account
-    string connectionId?;
-    # Contains the last updated balances details
-    string balancesLastUpdated?;
-    # Contains the list of last updated transactions
-    string transactionsLastUpdated?;
-    # Indicates the logo of the bank
-    string bankLogo?;
-    # Contains the name of the external source provider for the customer
-    string extSourceProvider?;
+    CardIssueBodyAccountIds[] accountIds?;
     # Identifier of the customer
+    @constraint:String {maxLength: 10}
     string customerId?;
-    # Contains the connection status of the transaction
-    string connectionStatus?;
-    # Contains the connection sub status of the transaction
-    string connectionSubStatus?;
-    # Denotes the next refresh time
-    string nextRefreshAvailableAt?;
-    # Contains the swift reference of the account
-    string acctSwiftRef?;
-    # Denotes the external account number
-    string extAccountNumber?;
-    # Total funds available in the account after all the ongoing transactions have been completed
-    string availableFunds?;
-    # Identifier of the customer
-    CustomerHoldingsResponseBodyInner_customerIds[] customerIds?;
-    # Contains the templates used for payment transactions
-    CustomerHoldingsResponseBodyInner_paymentTemplates[] paymentTemplates?;
+    # Identifier of the currency. This is the 3-letter ISO 4217 code of the currency
+    @constraint:String {maxLength: 10}
+    string currencyId?;
+    # The date the item was issued
+    string issueDate?;
+    # The date on which the charge will be debited to the charge account
+    @constraint:String {maxLength: 11}
+    string chargeDate?;
+    # Current status of the Card and following are the possible statuses are  - CARD.ISSUED - CARD.RETURNED - CARD.SCRAP - CARD.CANCEL - NOT.ACTIVATED - NOT.RECEIVED - ACTIVE - BLOCKED - EXPIRED
+    @constraint:String {maxLength: 100}
+    string cardStatus?;
+    # The date of cancellation
+    string cancellationDate?;
+};
+
+# Represents the Headers record for the operation: deleteCardIssue
+public type DeleteCardIssueHeaders record {
+    # Identifier of the lead company of the underlying Entity/Company/Branch for the respective contract for customer data protection purposes. Example US0010001
+    string companyId?;
+    # Username and password to authenticate the API against core-banking
+    string credentials?;
+    # User who initiated the transaction
+    string userRole?;
+    # Identifies the device type
+    string deviceId?;
+};
+
+# Represents the Queries record for the operation: updateCardIssue
+public type UpdateCardIssueQueries record {
+    # The identifier to indicate if it is set to only validate or not
+    @http:Query {name: "validate_only"}
+    boolean validateOnly?;
+};
+
+public type CardIssueBodyAccountIds record {
+    # Identifier of the account. Often referred to as the account number, yet for consistency this is always referred to as accountId. Accepts both IBAN & BBAN
+    @constraint:String {maxLength: 16}
+    string accountId?;
+};
+
+public type CardIssueBodyNotes record {
+    # Notes to facilitate the use of the function
+    @constraint:String {maxLength: 35}
+    string note?;
+};
+
+# Represents the Headers record for the operation: updateCardIssue
+public type UpdateCardIssueHeaders record {
+    # Identifier of the lead company of the underlying Entity/Company/Branch for the respective contract for customer data protection purposes. Example US0010001
+    string companyId?;
+    # Username and password to authenticate the API against core-banking
+    string credentials?;
+    # User who initiated the transaction
+    string userRole?;
+    # Identifies the device type
+    string deviceId?;
 };
 
 # Provides API key configurations needed when communicating with a remote HTTP endpoint.
@@ -239,19 +254,19 @@ public type ApiKeysConfig record {|
     string apikey;
 |};
 
-# Represents the Headers record for the operation: getCustomerHoldings
-public type GetCustomerHoldingsHeaders record {
+# Represents the Headers record for the operation: createCardIssue
+public type CreateCardIssueHeaders record {
     # Identifier of the lead company of the underlying Entity/Company/Branch for the respective contract for customer data protection purposes. Example US0010001
     string companyId?;
     # Username and password to authenticate the API against core-banking
     string credentials?;
-    # Indicates the pagination header attributes availability. If set to 'true', it fetches all the data
-    boolean disablePagination?;
     # User who initiated the transaction
     string userRole?;
     # Identifies the device type
     string deviceId?;
 };
+
+public type CardIssuesResponseBody CardIssuesResponseBodyInner[];
 
 # Provides a set of configurations for controlling the behaviours when communicating with a remote HTTP endpoint.
 @display {label: "Connection Config"}

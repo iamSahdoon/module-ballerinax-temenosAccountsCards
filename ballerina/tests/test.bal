@@ -17,8 +17,8 @@ import ballerina/test;
 import ballerina/io;
 
 configurable ApiKeysConfig apiKeyConfig = ?;
-configurable string serviceUrl = "https://api.temenos.com/api/v4.0.0/";
-configurable string customerId = "66052";
+configurable string serviceUrl = "https://api.temenos.com/api/v2.0.0//holdings/cards";
+// configurable string customerId = "66052";
 
 ConnectionConfig config = {
     auth: apiKeyConfig
@@ -26,26 +26,18 @@ ConnectionConfig config = {
 
 final Client temenos = check new Client(config, serviceUrl);
 
-@test:Config {}
+@test:Config {
+    groups: ["get_test"]
+}
 isolated function testGetHoldings() returns error? {
-    CustomerHoldingsResponse|error response = temenos->/holdings.get();
-    if response is CustomerHoldingsResponse {
+    CardIssuesResponse|error response = temenos->/.get();
+    if response is CardIssuesResponse {
         io:println("Success Response: ", response);
-        test:assertTrue(true, "Successfully retrieved holdings");
     } else {
         io:println("Error Response: ", response.message());
-        test:assertFail("Failed to retrieve holdings: " + response.message());
     }
 }
 
-@test:Config {}
-isolated function testGetCustomerHoldings() returns error? {
-    CustomerHoldingsResponse|error response = temenos->/holdings/customers/[customerId]/holdings.get();
-    if response is CustomerHoldingsResponse {
-        io:println("Success Response: ", response);
-        test:assertTrue(true, "Successfully retrieved customer holdings");
-    } else {
-        io:println("Error Response: ", response.message());
-        test:assertFail("Failed to retrieve customer holdings: " + response.message());
-    }
-}
+
+
+

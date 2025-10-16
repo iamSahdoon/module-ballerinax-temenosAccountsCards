@@ -341,7 +341,7 @@ modules = [
 
 [[package]]
 org = "ballerinax"
-name = "temenosListofHoldings"
+name = "temenosAccountsCards"
 version = "0.1.0"
 dependencies = [
 	{org = "ballerina", name = "constraint"},
@@ -353,6 +353,6 @@ dependencies = [
 	{org = "ballerinai", name = "observe"}
 ]
 modules = [
-	{org = "ballerinax", packageName = "temenosListofHoldings", moduleName = "temenosListofHoldings"}
+	{org = "ballerinax", packageName = "temenosAccountsCards", moduleName = "temenosAccountsCards"}
 ]
 

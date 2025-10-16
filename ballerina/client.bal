@@ -3,7 +3,7 @@
 
 import ballerina/http;
 
-# Retrieves all the Holdings
+# API to create, update and manage various types of cards issued to the account
 public isolated client class Client {
     final http:Client clientEp;
     final readonly & ApiKeysConfig? apiKeyConfig;
@@ -12,7 +12,7 @@ public isolated client class Client {
     # + config - The configurations to be used when initializing the `connector` 
     # + serviceUrl - URL of the target service 
     # + return - An error if connector initialization failed 
-    public isolated function init(ConnectionConfig config, string serviceUrl = "https://api.temenos.com/api/v4.0.0/") returns error? {
+    public isolated function init(ConnectionConfig config, string serviceUrl = "https://api.temenos.com/api/v2.0.0//holdings/cards") returns error? {
         http:ClientConfiguration httpClientConfig = {httpVersion: config.httpVersion, http1Settings: config.http1Settings, http2Settings: config.http2Settings, timeout: config.timeout, forwarded: config.forwarded, followRedirects: config.followRedirects, poolConfig: config.poolConfig, cache: config.cache, compression: config.compression, circuitBreaker: config.circuitBreaker, retryConfig: config.retryConfig, cookieConfig: config.cookieConfig, responseLimits: config.responseLimits, secureSocket: config.secureSocket, proxy: config.proxy, socketConfig: config.socketConfig, validation: config.validation, laxDataBinding: config.laxDataBinding};
         if config.auth is ApiKeysConfig {
             self.apiKeyConfig = (<ApiKeysConfig>config.auth).cloneReadOnly();
@@ -23,25 +23,70 @@ public isolated client class Client {
         self.clientEp = check new (serviceUrl, httpClientConfig);
     }
 
-    # Retrieves the list of customer accounts
+    # Updates card issue request of an account
     #
-    # + customerId - Identifier of the customer
+    # + cardIssueId - The identifier of the issued card formatted as cardType '.' cardNumber. E.g. VISA.1234567887654321 GC.1111222233334444 AB21.1111111122222222
     # + headers - Headers to be sent with the request 
     # + queries - Queries to be sent with the request 
-    # + return - CustomerHoldingsResponse 
-    resource isolated function get holdings/customers/[string customerId]/holdings(GetCustomerHoldingsHeaders headers = {}, *GetCustomerHoldingsQueries queries) returns CustomerHoldingsResponse|error {
-        string resourcePath = string `/holdings/customers/${getEncodedUri(customerId)}/holdings`;
+    # + request - body Payload 
+    # + return - CardIssueResponse 
+    resource isolated function put [string cardIssueId](http:Request request, UpdateCardIssueHeaders headers = {}, *UpdateCardIssueQueries queries) returns CardIssueResponse|error {
+        string resourcePath = string `/${getEncodedUri(cardIssueId)}`;
         map<anydata> headerValues = {...headers};
         if self.apiKeyConfig is ApiKeysConfig {
             headerValues["apikey"] = self.apiKeyConfig?.apikey;
         }
         resourcePath = resourcePath + check getPathForQueryParam(queries);
         map<string|string[]> httpHeaders = http:getHeaderMap(headerValues);
-        return self.clientEp->get(resourcePath, httpHeaders);
+        // TODO: Update the request as needed;
+        return self.clientEp->put(resourcePath, request, httpHeaders);
     }
 
-    resource isolated function get holdings(GetHoldingsHeaders headers = {}, *GetHoldingsQueries queries) returns CustomerHoldingsResponse|error {
-        string resourcePath = string `/holdings/`;
+    # Creates card issue request for an account
+    #
+    # + cardIssueId - The identifier of the issued card formatted as cardType '.' cardNumber. E.g. VISA.1234567887654321 GC.1111222233334444 AB21.1111111122222222
+    # + headers - Headers to be sent with the request 
+    # + queries - Queries to be sent with the request 
+    # + request - body Payload 
+    # + return - CardIssueResponse 
+    resource isolated function post [string cardIssueId](http:Request request, CreateCardIssueHeaders headers = {}, *CreateCardIssueQueries queries) returns CardIssueResponse|error {
+        string resourcePath = string `/${getEncodedUri(cardIssueId)}`;
+        map<anydata> headerValues = {...headers};
+        if self.apiKeyConfig is ApiKeysConfig {
+            headerValues["apikey"] = self.apiKeyConfig?.apikey;
+        }
+        resourcePath = resourcePath + check getPathForQueryParam(queries);
+        map<string|string[]> httpHeaders = http:getHeaderMap(headerValues);
+        // TODO: Update the request as needed;
+        return self.clientEp->post(resourcePath, request, httpHeaders);
+    }
+
+    # Removes an issued card for an account
+    #
+    # + cardIssueId - The identifier of the issued card formatted as cardType '.' cardNumber. E.g. VISA.1234567887654321 GC.1111222233334444 AB21.1111111122222222
+    # + headers - Headers to be sent with the request 
+    # + queries - Queries to be sent with the request 
+    # + request - body Payload 
+    # + return - CardIssueResponse 
+    resource isolated function delete [string cardIssueId](http:Request request, DeleteCardIssueHeaders headers = {}, *DeleteCardIssueQueries queries) returns CardIssueResponse|error {
+        string resourcePath = string `/${getEncodedUri(cardIssueId)}`;
+        map<anydata> headerValues = {...headers};
+        if self.apiKeyConfig is ApiKeysConfig {
+            headerValues["apikey"] = self.apiKeyConfig?.apikey;
+        }
+        resourcePath = resourcePath + check getPathForQueryParam(queries);
+        map<string|string[]> httpHeaders = http:getHeaderMap(headerValues);
+        // TODO: Update the request as needed;
+        return self.clientEp->delete(resourcePath, request, httpHeaders);
+    }
+
+    # Retrieves issued cards details of an account
+    #
+    # + headers - Headers to be sent with the request 
+    # + queries - Queries to be sent with the request 
+    # + return - CardIssuesResponse 
+    resource isolated function get .(GetCardIssuesHeaders headers = {}, *GetCardIssuesQueries queries) returns CardIssuesResponse|error {
+        string resourcePath = string `/`;
         map<anydata> headerValues = {...headers};
         if self.apiKeyConfig is ApiKeysConfig {
             headerValues["apikey"] = self.apiKeyConfig?.apikey;
